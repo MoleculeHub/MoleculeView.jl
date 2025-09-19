@@ -21,7 +21,7 @@ DataFrames = "1.8.0"
 FileIO = "1.17.0"
 ImageIO = "0.6.9"
 JSON3 = "1.14.3"
-MoleculeFlow = "0.1.0"
+MoleculeFlow = "0.2.0"
 ProgressMeter = "1"
 WGLMakie = "0.10"
 
