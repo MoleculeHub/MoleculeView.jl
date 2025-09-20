@@ -126,6 +126,38 @@ function generate_html_template()
             background: #545b62;
         }
 
+        .range-selection {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+        .range-input {
+            padding: 6px 8px;
+            border: none;
+            border-radius: 3px;
+            width: 120px;
+            font-size: 12px;
+        }
+
+        .range-property-select {
+            padding: 6px 8px;
+            border: none;
+            border-radius: 3px;
+            width: 150px;
+            font-size: 12px;
+        }
+
+        .range-label {
+            color: white;
+            font-size: 14px;
+        }
+
         .grid-info {
             padding: 15px 20px;
             background: #e9ecef;
@@ -294,6 +326,18 @@ function generate_html_template()
                 <button class="control-btn" id="selectAllBtn">Select All</button>
                 <button class="control-btn secondary" id="clearSelectionBtn">Clear</button>
                 <button class="control-btn secondary" id="exportBtn">Export Selected</button>
+                <button class="control-btn" id="toggleRangeBtn">Range Filter</button>
+            </div>
+            <div class="range-selection" id="rangeSelection" style="display: none;">
+                <label class="range-label">Filter by Range (Numerical Only):</label>
+                <select class="range-property-select" id="rangePropertySelect">
+                    <option value="">Choose property...</option>
+                </select>
+                <input type="number" class="range-input" id="rangeMin" placeholder="Min" step="any">
+                <span class="range-label">to</span>
+                <input type="number" class="range-input" id="rangeMax" placeholder="Max" step="any">
+                <button class="control-btn" id="applyRangeBtn">Apply Filter</button>
+                <button class="control-btn secondary" id="clearRangeBtn">Clear Filter</button>
             </div>
         </div>
 
@@ -325,6 +369,9 @@ function generate_html_template()
                 this.searchTerm = '';
                 this.sortBy = '';
                 this.sortOrder = 'asc';
+                this.rangeProperty = '';
+                this.rangeMin = null;
+                this.rangeMax = null;
 
                 this.initializeEventListeners();
             }
@@ -367,11 +414,21 @@ function generate_html_template()
                 exportBtn.addEventListener('click', () => this.exportSelected());
                 prevBtn.addEventListener('click', () => this.previousPage());
                 nextBtn.addEventListener('click', () => this.nextPage());
+
+                // Range selection event listeners
+                const toggleRangeBtn = document.getElementById('toggleRangeBtn');
+                const applyRangeBtn = document.getElementById('applyRangeBtn');
+                const clearRangeBtn = document.getElementById('clearRangeBtn');
+
+                toggleRangeBtn.addEventListener('click', () => this.toggleRangeSelection());
+                applyRangeBtn.addEventListener('click', () => this.applyRangeFilter());
+                clearRangeBtn.addEventListener('click', () => this.clearRangeFilter());
             }
 
             setData(molecules) {
                 this.molecules = molecules;
                 this.populateSortOptions();
+                this.populateRangeOptions();
                 this.filterAndSortMolecules();
                 this.renderGrid();
                 this.updateCounts();
@@ -405,8 +462,68 @@ function generate_html_template()
                 }
             }
 
+            populateRangeOptions() {
+                const rangeSelect = document.getElementById('rangePropertySelect');
+                const currentValue = rangeSelect.value;
+
+                // Clear existing options except the first one
+                while (rangeSelect.children.length > 1) {
+                    rangeSelect.removeChild(rangeSelect.lastChild);
+                }
+
+                if (this.molecules.length > 0) {
+                    const sampleMolecule = this.molecules[0];
+                    const properties = Object.keys(sampleMolecule.properties || {});
+
+                    properties.forEach(prop => {
+                        // Only add numeric properties to range selection
+                        const sampleValue = sampleMolecule.properties[prop];
+                        if (typeof sampleValue === 'number') {
+                            const option = document.createElement('option');
+                            option.value = prop;
+                            option.textContent = prop.replace(/_/g, ' ').split(' ').map(word =>
+                                word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                            rangeSelect.appendChild(option);
+                        }
+                    });
+                }
+
+                // Restore previous selection if valid
+                if (currentValue && Array.from(rangeSelect.options).some(opt => opt.value === currentValue)) {
+                    rangeSelect.value = currentValue;
+                }
+
+                // Add event listener to update placeholders when property is selected
+                rangeSelect.addEventListener('change', () => this.updateRangePlaceholders());
+            }
+
+            updateRangePlaceholders() {
+                const rangeSelect = document.getElementById('rangePropertySelect');
+                const minInput = document.getElementById('rangeMin');
+                const maxInput = document.getElementById('rangeMax');
+                const selectedProperty = rangeSelect.value;
+
+                if (selectedProperty && this.molecules.length > 0) {
+                    // Calculate min and max values for the selected property
+                    const values = this.molecules
+                        .map(mol => mol.properties && mol.properties[selectedProperty])
+                        .filter(val => typeof val === 'number');
+
+                    if (values.length > 0) {
+                        const minVal = Math.min.apply(Math, values);
+                        const maxVal = Math.max.apply(Math, values);
+
+                        minInput.placeholder = 'Min (' + minVal.toFixed(2) + ')';
+                        maxInput.placeholder = 'Max (' + maxVal.toFixed(2) + ')';
+                    }
+                } else {
+                    minInput.placeholder = 'Min';
+                    maxInput.placeholder = 'Max';
+                }
+            }
+
             filterAndSortMolecules() {
-                // First filter
+                // First filter by search term
                 let filtered;
                 if (!this.searchTerm) {
                     filtered = [...this.molecules];
@@ -416,6 +533,20 @@ function generate_html_template()
                         return searchFields.some(field =>
                             String(field).toLowerCase().includes(this.searchTerm)
                         );
+                    });
+                }
+
+                // Then filter by range if range filter is active
+                if (this.rangeProperty && (this.rangeMin !== null || this.rangeMax !== null)) {
+                    filtered = filtered.filter(mol => {
+                        const value = mol.properties && mol.properties[this.rangeProperty];
+                        if (typeof value !== 'number') return false;
+
+                        let inRange = true;
+                        if (this.rangeMin !== null && value < this.rangeMin) inRange = false;
+                        if (this.rangeMax !== null && value > this.rangeMax) inRange = false;
+
+                        return inRange;
                     });
                 }
 
@@ -622,6 +753,52 @@ function generate_html_template()
                 if (window.juliaCallback) {
                     window.juliaCallback(Array.from(this.selectedMolecules));
                 }
+            }
+
+            toggleRangeSelection() {
+                const rangeSelection = document.getElementById('rangeSelection');
+                const toggleBtn = document.getElementById('toggleRangeBtn');
+
+                if (rangeSelection.style.display === 'none') {
+                    rangeSelection.style.display = 'flex';
+                    toggleBtn.textContent = 'Hide Filter';
+                } else {
+                    rangeSelection.style.display = 'none';
+                    toggleBtn.textContent = 'Range Filter';
+                }
+            }
+
+            applyRangeFilter() {
+                const propertySelect = document.getElementById('rangePropertySelect');
+                const minInput = document.getElementById('rangeMin');
+                const maxInput = document.getElementById('rangeMax');
+
+                this.rangeProperty = propertySelect.value;
+                this.rangeMin = minInput.value ? parseFloat(minInput.value) : null;
+                this.rangeMax = maxInput.value ? parseFloat(maxInput.value) : null;
+
+                if (!this.rangeProperty) {
+                    alert('Please select a property for range filtering');
+                    return;
+                }
+
+                this.filterAndSortMolecules();
+                this.currentPage = 1;
+                this.renderGrid();
+            }
+
+            clearRangeFilter() {
+                this.rangeProperty = '';
+                this.rangeMin = null;
+                this.rangeMax = null;
+
+                document.getElementById('rangePropertySelect').value = '';
+                document.getElementById('rangeMin').value = '';
+                document.getElementById('rangeMax').value = '';
+
+                this.filterAndSortMolecules();
+                this.currentPage = 1;
+                this.renderGrid();
             }
         }
 
