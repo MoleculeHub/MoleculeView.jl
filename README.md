@@ -8,11 +8,14 @@ A Julia library for interactive molecular data visualization and exploration.
 
 <table>
   <tr>
-    <td><img src="assets/scatter_demo_cont.gif" alt="Grid Demo" width="400"/></td>
-    <td><img src="assets/scatter_demo_cat.gif" alt="Categorical Scatter Demo" width="400"/></td>
+    <td><img src="assets/scatter_demo_cont.gif" width="375"/></td>
+    <td><img src="assets/scatter_demo_cat.gif"  width="375"/></td>
   </tr>
   <tr>
-    <td colspan="2" align="center"><img src="assets/grid_demo.gif" alt="Continuous Scatter Demo" width="500"/></td>
+    <td colspan="2" align="center"><img src="assets/grid_demo.gif"  width="500"/></td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center"><img src="assets/range_sel_demo.gif" width="500"/></td>
   </tr>
 </table>
 
