@@ -1,0 +1,67 @@
+<div class="plot-selection" id="plotSelection" style="display: none;">
+    <div style="border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 15px; margin-bottom: 15px;">
+        <label class="range-label">Distribution Plotting</label>
+        <p style="color: rgba(255,255,255,0.7); font-size: 12px; margin: 5px 0;">Plot distributions of molecular properties based on current filtered data.</p>
+    </div>
+
+    <!-- Property Selection for Plotting -->
+    <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; justify-content: center;">
+
+        <!-- Numerical Properties Section -->
+        <div style="display: flex; flex-direction: column; gap: 12px; min-width: 300px; padding: 15px; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; background: rgba(255,255,255,0.05);">
+            <label class="range-label" style="font-size: 14px; margin-bottom: 8px;">📊 Numerical Properties</label>
+            <select class="range-property-select" id="plotNumericalSelect" style="width: 100%; margin-bottom: 12px;">
+                <option value="">Choose numerical property...</option>
+            </select>
+            <button class="control-btn" id="plotNumericalBtn" style="width: 100%; padding: 10px;">Plot Histogram</button>
+        </div>
+
+        <!-- Categorical Properties Section -->
+        <div style="display: flex; flex-direction: column; gap: 12px; min-width: 300px; padding: 15px; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; background: rgba(255,255,255,0.05);">
+            <label class="range-label" style="font-size: 14px; margin-bottom: 8px;">📊 Categorical Properties</label>
+            <select class="range-property-select" id="plotCategoricalSelect" style="width: 100%; margin-bottom: 12px;">
+                <option value="">Choose categorical property...</option>
+            </select>
+            <button class="control-btn" id="plotCategoricalBtn" style="width: 100%; padding: 10px;">Plot Bar Chart</button>
+        </div>
+    </div>
+
+    <!-- Info Section -->
+    <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 4px; border-left: 4px solid #4CAF50;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+            <span style="font-size: 16px;">ℹ️</span>
+            <span class="range-label" style="font-size: 13px; font-weight: 500;">Plotting Information</span>
+        </div>
+        <ul style="color: rgba(255,255,255,0.8); font-size: 12px; margin: 0; padding-left: 20px;">
+            <li>Plots show distribution of <strong>currently filtered data</strong></li>
+            <li>Missing, null, or invalid values (NaN, empty) are automatically excluded</li>
+            <li>Click "Plot Histogram" for numerical properties (molecular weight, logP, etc.)</li>
+            <li>Click "Plot Bar Chart" for categorical properties (drug-like, compound class, etc.)</li>
+            <li>Export plot data as CSV from the plot modal</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Enhanced Distribution Plot Modal -->
+<div id="plotModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: #2c3e50; padding: 20px; border-radius: 8px; max-width: 85%; max-height: 85%; overflow: auto; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 id="plotTitle" style="color: white; margin: 0; font-size: 18px;">Distribution Plot</h3>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button id="exportPlotCsvBtn" class="control-btn secondary" style="padding: 6px 12px; font-size: 12px;">💾 Export CSV</button>
+                <button id="closePlotModal" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer; padding: 5px; line-height: 1;">&times;</button>
+            </div>
+        </div>
+        <div style="width: 700px; height: 450px; background: white; border-radius: 4px; padding: 10px;">
+            <canvas id="distributionChart"></canvas>
+        </div>
+        <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
+            <div id="plotStats" style="color: rgba(255,255,255,0.8); font-size: 12px;">
+                <!-- Statistics will be populated here -->
+            </div>
+            <div style="color: rgba(255,255,255,0.7); font-size: 11px;">
+                Based on <span id="dataPointCount">0</span> filtered molecules
+            </div>
+        </div>
+    </div>
+</div>

@@ -67,6 +67,7 @@ The molecule grid allows you to:
 - Find molecules by ID or properties
 - Sort by any property in ascending/descending order.
 - Filter by one single or combination of properties.
+- Plot the distributions of properties
 - Export selected molecules as a CSV file.
 
 ## API Reference
