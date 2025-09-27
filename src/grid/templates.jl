@@ -158,6 +158,42 @@ function generate_html_template()
             font-size: 14px;
         }
 
+        .categorical-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255,255,255,0.1);
+            padding: 4px 8px;
+            border-radius: 3px;
+            white-space: nowrap;
+            font-size: 12px;
+            margin-bottom: 2px;
+        }
+
+        .categorical-option input[type="checkbox"] {
+            margin: 0;
+        }
+
+        .categorical-option label {
+            color: white;
+            cursor: pointer;
+            margin: 0;
+            flex: 1;
+        }
+
+        .categorical-option.hidden {
+            display: none;
+        }
+
+        #categoricalValuesContainer {
+            background: rgba(255,255,255,0.05);
+        }
+
+        #categorySearchInput {
+            background: white;
+            border: 1px solid #ccc;
+        }
+
         .grid-info {
             padding: 15px 20px;
             background: #e9ecef;
@@ -324,20 +360,48 @@ function generate_html_template()
                     <button class="control-btn secondary" id="sortOrderBtn" style="min-width: 80px; padding: 6px 8px; font-size: 12px;" title="Toggle sort order">Ascending</button>
                 </div>
                 <button class="control-btn" id="selectAllBtn">Select All</button>
+                <button class="control-btn" id="toggleFilterBtn">Filter</button>
                 <button class="control-btn secondary" id="clearSelectionBtn">Clear</button>
                 <button class="control-btn secondary" id="exportBtn">Export Selected</button>
-                <button class="control-btn" id="toggleRangeBtn">Range Filter</button>
             </div>
-            <div class="range-selection" id="rangeSelection" style="display: none;">
-                <label class="range-label">Filter by Range (Numerical Only):</label>
-                <select class="range-property-select" id="rangePropertySelect">
-                    <option value="">Choose property...</option>
-                </select>
-                <input type="number" class="range-input" id="rangeMin" placeholder="Min" step="any">
-                <span class="range-label">to</span>
-                <input type="number" class="range-input" id="rangeMax" placeholder="Max" step="any">
-                <button class="control-btn" id="applyRangeBtn">Apply Filter</button>
-                <button class="control-btn secondary" id="clearRangeBtn">Clear Filter</button>
+            <div class="range-selection" id="filterSelection" style="display: none;">
+                <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
+                    <!-- Range Filter Section -->
+                    <div style="display: flex; flex-direction: column; gap: 10px; min-width: 300px;">
+                        <label class="range-label">Range Filter (Numerical):</label>
+                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <select class="range-property-select" id="rangePropertySelect">
+                                <option value="">Choose property...</option>
+                            </select>
+                            <input type="number" class="range-input" id="rangeMin" placeholder="Min" step="any">
+                            <span class="range-label">to</span>
+                            <input type="number" class="range-input" id="rangeMax" placeholder="Max" step="any">
+                        </div>
+                    </div>
+
+                    <!-- Categorical Filter Section -->
+                    <div style="display: flex; flex-direction: column; gap: 10px; min-width: 300px;">
+                        <label class="range-label">Categorical Filter:</label>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <select class="range-property-select" id="categoricalPropertySelect">
+                                <option value="">Choose property...</option>
+                            </select>
+                            <div id="categoricalValuesContainer" style="max-height: 200px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; padding: 8px; background: rgba(255,255,255,0.05);">
+                                <div id="categoricalSearch" style="margin-bottom: 8px;">
+                                    <input type="text" id="categorySearchInput" placeholder="Search categories..." style="width: 100%; padding: 4px 8px; border: none; border-radius: 3px; font-size: 12px;">
+                                </div>
+                                <div id="categoricalValues" style="display: flex; flex-direction: column; gap: 3px; max-height: 150px; overflow-y: auto;">
+                                    <!-- Categorical checkboxes will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 15px; justify-content: center;">
+                    <button class="control-btn" id="applyFiltersBtn">Apply Filters</button>
+                    <button class="control-btn secondary" id="clearFiltersBtn">Clear All Filters</button>
+                </div>
             </div>
         </div>
 
@@ -372,6 +436,8 @@ function generate_html_template()
                 this.rangeProperty = '';
                 this.rangeMin = null;
                 this.rangeMax = null;
+                this.categoricalProperty = '';
+                this.categoricalSelectedValues = new Set();
 
                 this.initializeEventListeners();
             }
@@ -415,20 +481,23 @@ function generate_html_template()
                 prevBtn.addEventListener('click', () => this.previousPage());
                 nextBtn.addEventListener('click', () => this.nextPage());
 
-                // Range selection event listeners
-                const toggleRangeBtn = document.getElementById('toggleRangeBtn');
-                const applyRangeBtn = document.getElementById('applyRangeBtn');
-                const clearRangeBtn = document.getElementById('clearRangeBtn');
+                // Filter event listeners
+                const toggleFilterBtn = document.getElementById('toggleFilterBtn');
+                const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+                const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+                const categorySearchInput = document.getElementById('categorySearchInput');
 
-                toggleRangeBtn.addEventListener('click', () => this.toggleRangeSelection());
-                applyRangeBtn.addEventListener('click', () => this.applyRangeFilter());
-                clearRangeBtn.addEventListener('click', () => this.clearRangeFilter());
+                toggleFilterBtn.addEventListener('click', () => this.toggleFilterSelection());
+                applyFiltersBtn.addEventListener('click', () => this.applyFilters());
+                clearFiltersBtn.addEventListener('click', () => this.clearAllFilters());
+                categorySearchInput.addEventListener('input', (e) => this.filterCategoryOptions(e.target.value));
             }
 
             setData(molecules) {
                 this.molecules = molecules;
                 this.populateSortOptions();
                 this.populateRangeOptions();
+                this.populateCategoricalOptions();
                 this.filterAndSortMolecules();
                 this.renderGrid();
                 this.updateCounts();
@@ -497,6 +566,41 @@ function generate_html_template()
                 rangeSelect.addEventListener('change', () => this.updateRangePlaceholders());
             }
 
+            populateCategoricalOptions() {
+                const categoricalSelect = document.getElementById('categoricalPropertySelect');
+                const currentValue = categoricalSelect.value;
+
+                // Clear existing options except the first one
+                while (categoricalSelect.children.length > 1) {
+                    categoricalSelect.removeChild(categoricalSelect.lastChild);
+                }
+
+                if (this.molecules.length > 0) {
+                    const sampleMolecule = this.molecules[0];
+                    const properties = Object.keys(sampleMolecule.properties || {});
+
+                    properties.forEach(prop => {
+                        // Only add non-numeric properties to categorical selection
+                        const sampleValue = sampleMolecule.properties[prop];
+                        if (typeof sampleValue !== 'number') {
+                            const option = document.createElement('option');
+                            option.value = prop;
+                            option.textContent = prop.replace(/_/g, ' ').split(' ').map(word =>
+                                word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                            categoricalSelect.appendChild(option);
+                        }
+                    });
+                }
+
+                // Restore previous selection if valid
+                if (currentValue && Array.from(categoricalSelect.options).some(opt => opt.value === currentValue)) {
+                    categoricalSelect.value = currentValue;
+                }
+
+                // Add event listener to update categorical values when property is selected
+                categoricalSelect.addEventListener('change', () => this.updateCategoricalValues());
+            }
+
             updateRangePlaceholders() {
                 const rangeSelect = document.getElementById('rangePropertySelect');
                 const minInput = document.getElementById('rangeMin');
@@ -520,6 +624,109 @@ function generate_html_template()
                     minInput.placeholder = 'Min';
                     maxInput.placeholder = 'Max';
                 }
+            }
+
+            updateCategoricalValues() {
+                const categoricalSelect = document.getElementById('categoricalPropertySelect');
+                const categoricalValues = document.getElementById('categoricalValues');
+                const selectedProperty = categoricalSelect.value;
+
+                categoricalValues.innerHTML = '';
+                document.getElementById('categorySearchInput').value = '';
+
+                if (selectedProperty && this.molecules.length > 0) {
+                    // Get all unique values for the selected property
+                    const uniqueValues = new Set();
+                    this.molecules.forEach(mol => {
+                        const value = mol.properties && mol.properties[selectedProperty];
+                        if (value !== undefined && value !== null && value !== '') {
+                            uniqueValues.add(String(value));
+                        }
+                    });
+
+                    const sortedValues = Array.from(uniqueValues).sort();
+
+                    // Show count and select all option if many categories
+                    if (sortedValues.length > 10) {
+                        const selectAllContainer = document.createElement('div');
+                        selectAllContainer.className = 'categorical-option';
+                        selectAllContainer.style.fontWeight = 'bold';
+                        selectAllContainer.style.borderBottom = '1px solid rgba(255,255,255,0.2)';
+                        selectAllContainer.style.marginBottom = '5px';
+
+                        const selectAllCheckbox = document.createElement('input');
+                        selectAllCheckbox.type = 'checkbox';
+                        selectAllCheckbox.id = 'selectAllCategories';
+
+                        const selectAllLabel = document.createElement('label');
+                        selectAllLabel.htmlFor = 'selectAllCategories';
+                        selectAllLabel.textContent = `Select All (\${sortedValues.length} items)`;
+
+                        selectAllContainer.appendChild(selectAllCheckbox);
+                        selectAllContainer.appendChild(selectAllLabel);
+                        categoricalValues.appendChild(selectAllContainer);
+
+                        selectAllCheckbox.addEventListener('change', (e) => {
+                            const allCheckboxes = categoricalValues.querySelectorAll('input[type="checkbox"]:not(#selectAllCategories)');
+                            allCheckboxes.forEach(cb => {
+                                cb.checked = e.target.checked;
+                                if (e.target.checked) {
+                                    this.categoricalSelectedValues.add(cb.value);
+                                } else {
+                                    this.categoricalSelectedValues.delete(cb.value);
+                                }
+                            });
+                        });
+                    }
+
+                    sortedValues.forEach(value => {
+                        const checkboxContainer = document.createElement('div');
+                        checkboxContainer.className = 'categorical-option';
+                        checkboxContainer.dataset.value = value.toLowerCase();
+
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.id = 'cat_' + value.replace(/[^a-zA-Z0-9]/g, '_');
+                        checkbox.value = value;
+                        checkbox.checked = this.categoricalSelectedValues.has(value);
+
+                        const label = document.createElement('label');
+                        label.htmlFor = checkbox.id;
+                        label.textContent = value;
+
+                        checkboxContainer.appendChild(checkbox);
+                        checkboxContainer.appendChild(label);
+                        categoricalValues.appendChild(checkboxContainer);
+
+                        checkbox.addEventListener('change', (e) => {
+                            if (e.target.checked) {
+                                this.categoricalSelectedValues.add(value);
+                            } else {
+                                this.categoricalSelectedValues.delete(value);
+                            }
+
+                            // Update select all checkbox
+                            const selectAllCheckbox = document.getElementById('selectAllCategories');
+                            if (selectAllCheckbox) {
+                                const allCheckboxes = categoricalValues.querySelectorAll('input[type="checkbox"]:not(#selectAllCategories)');
+                                const checkedCount = Array.from(allCheckboxes).filter(cb => cb.checked).length;
+                                selectAllCheckbox.checked = checkedCount === allCheckboxes.length;
+                                selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < allCheckboxes.length;
+                            }
+                        });
+                    });
+                }
+            }
+
+            filterCategoryOptions(searchTerm) {
+                const categoricalValues = document.getElementById('categoricalValues');
+                const options = categoricalValues.querySelectorAll('.categorical-option:not([id*="selectAll"])');
+
+                options.forEach(option => {
+                    const value = option.dataset.value || '';
+                    const matches = value.includes(searchTerm.toLowerCase());
+                    option.classList.toggle('hidden', !matches);
+                });
             }
 
             filterAndSortMolecules() {
@@ -547,6 +754,16 @@ function generate_html_template()
                         if (this.rangeMax !== null && value > this.rangeMax) inRange = false;
 
                         return inRange;
+                    });
+                }
+
+                // Then filter by categorical if categorical filter is active
+                if (this.categoricalProperty && this.categoricalSelectedValues.size > 0) {
+                    filtered = filtered.filter(mol => {
+                        const value = mol.properties && mol.properties[this.categoricalProperty];
+                        if (value === undefined || value === null || value === '') return false;
+
+                        return this.categoricalSelectedValues.has(String(value));
                     });
                 }
 
@@ -755,30 +972,41 @@ function generate_html_template()
                 }
             }
 
-            toggleRangeSelection() {
-                const rangeSelection = document.getElementById('rangeSelection');
-                const toggleBtn = document.getElementById('toggleRangeBtn');
+            toggleFilterSelection() {
+                const filterSelection = document.getElementById('filterSelection');
+                const toggleBtn = document.getElementById('toggleFilterBtn');
 
-                if (rangeSelection.style.display === 'none') {
-                    rangeSelection.style.display = 'flex';
+                if (filterSelection.style.display === 'none') {
+                    filterSelection.style.display = 'block';
                     toggleBtn.textContent = 'Hide Filter';
                 } else {
-                    rangeSelection.style.display = 'none';
-                    toggleBtn.textContent = 'Range Filter';
+                    filterSelection.style.display = 'none';
+                    toggleBtn.textContent = 'Filter';
                 }
             }
 
-            applyRangeFilter() {
-                const propertySelect = document.getElementById('rangePropertySelect');
+            applyFilters() {
+                const rangePropertySelect = document.getElementById('rangePropertySelect');
+                const categoricalPropertySelect = document.getElementById('categoricalPropertySelect');
                 const minInput = document.getElementById('rangeMin');
                 const maxInput = document.getElementById('rangeMax');
 
-                this.rangeProperty = propertySelect.value;
+                // Apply range filter
+                this.rangeProperty = rangePropertySelect.value;
                 this.rangeMin = minInput.value ? parseFloat(minInput.value) : null;
                 this.rangeMax = maxInput.value ? parseFloat(maxInput.value) : null;
 
-                if (!this.rangeProperty) {
-                    alert('Please select a property for range filtering');
+                // Apply categorical filter
+                this.categoricalProperty = categoricalPropertySelect.value;
+
+                // Validate inputs
+                if (this.rangeProperty && this.rangeMin === null && this.rangeMax === null) {
+                    alert('Please enter min and/or max values for range filtering');
+                    return;
+                }
+
+                if (this.categoricalProperty && this.categoricalSelectedValues.size === 0) {
+                    alert('Please select at least one category value');
                     return;
                 }
 
@@ -787,14 +1015,21 @@ function generate_html_template()
                 this.renderGrid();
             }
 
-            clearRangeFilter() {
+            clearAllFilters() {
+                // Clear range filter
                 this.rangeProperty = '';
                 this.rangeMin = null;
                 this.rangeMax = null;
-
                 document.getElementById('rangePropertySelect').value = '';
                 document.getElementById('rangeMin').value = '';
                 document.getElementById('rangeMax').value = '';
+
+                // Clear categorical filter
+                this.categoricalProperty = '';
+                this.categoricalSelectedValues.clear();
+                document.getElementById('categoricalPropertySelect').value = '';
+                document.getElementById('categoricalValues').innerHTML = '';
+                document.getElementById('categorySearchInput').value = '';
 
                 this.filterAndSortMolecules();
                 this.currentPage = 1;
