@@ -6,13 +6,15 @@
     <!-- Include main grid body structure -->
     {{GRID_BODY}}
 
-    <!-- Include filter UI -->
+    <!-- Include filter UI and plot UI -->
     <script>
-        // Insert filter UI after grid header
+        // Insert filter UI and plot UI after grid header
         document.addEventListener('DOMContentLoaded', function() {
             const gridHeader = document.querySelector('.grid-header');
             const filterHTML = `{{FILTER_UI}}`;
+            const plotHTML = `{{PLOT_UI}}`;
             gridHeader.insertAdjacentHTML('beforeend', filterHTML);
+            gridHeader.insertAdjacentHTML('beforeend', plotHTML);
         });
     </script>
 

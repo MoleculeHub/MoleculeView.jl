@@ -51,10 +51,12 @@ function generate_html_template()
     # Read partials
     head_path = joinpath(@__DIR__, "partials", "head.html")
     filter_ui_path = joinpath(@__DIR__, "partials", "filter-ui.html")
+    plot_ui_path = joinpath(@__DIR__, "partials", "plot-ui.html")
     grid_body_path = joinpath(@__DIR__, "partials", "grid-body.html")
 
     head_content = read(head_path, String)
     filter_ui_content = read(filter_ui_path, String)
+    plot_ui_content = read(plot_ui_path, String)
     grid_body_content = read(grid_body_path, String)
 
     # Read assets
@@ -67,6 +69,7 @@ function generate_html_template()
     # Replace partials
     template = replace(template, "{{HEAD}}" => head_content)
     template = replace(template, "{{FILTER_UI}}" => filter_ui_content)
+    template = replace(template, "{{PLOT_UI}}" => plot_ui_content)
     template = replace(template, "{{GRID_BODY}}" => grid_body_content)
 
     # Replace assets
