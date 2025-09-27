@@ -1,7 +1,7 @@
 name = "MoleculeView"
 uuid = "51e283bb-8733-4f53-8900-5afe7e33f1ed"
 authors = ["Renee Gil"]
-version = "0.3.0"
+version = "1.0.0"
 
 [deps]
 Base64 = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
