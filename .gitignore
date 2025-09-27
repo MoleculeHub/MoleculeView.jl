@@ -25,4 +25,4 @@ Manifest.toml
 .DS_Store
 .CondaPkg/
 train_data.csv
-range_test.jl
+test.jl

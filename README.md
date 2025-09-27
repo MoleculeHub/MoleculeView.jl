@@ -14,9 +14,6 @@ A Julia library for interactive molecular data visualization and exploration.
   <tr>
     <td colspan="2" align="center"><img src="assets/grid_demo.gif"  width="500"/></td>
   </tr>
-  <tr>
-    <td colspan="2" align="center"><img src="assets/range_sel_demo.gif" width="500"/></td>
-  </tr>
 </table>
 
 ## Installation
@@ -50,6 +47,8 @@ mol_scatter(
 )
 ```
 
+The interactive scatter plot displays molecules as points in 2D space, where clicking on any point shows the corresponding molecular structure. Points can be colored by categorical properties for visual grouping and analysis.
+
 ### Interactive Molecule Grid
 
 ```julia
@@ -62,6 +61,13 @@ display_mol_grid(
     open_browser = true,
 )
 ```
+
+The molecule grid allows you to:
+
+- Find molecules by ID or properties
+- Sort by any property in ascending/descending order.
+- Filter by one single or combination of properties.
+- Export selected molecules as a CSV file.
 
 ## API Reference
 
@@ -101,9 +107,11 @@ display_mol_grid(
     id_col = "id",
     properties = String[],
     size = (300, 300),
+    port = 8080,
     open_browser = true,
     save_file = nothing,
-) 
+    callback = nothing,
+)
 ```
 
 Create and display an interactive molecule grid from a DataFrame in one step.
@@ -112,8 +120,9 @@ Create and display an interactive molecule grid from a DataFrame in one step.
 - `data::DataFrame`: The molecular data
 - `mol_col::String`: Column name containing molecule data (SMILES, etc.)
 - `id_col::String`: Column name containing molecule IDs
-- `properties::Vector{String}`: List of property columns to display
-- `size::Tuple{Int,Int}`: Size of molecule images (width, height)
-- `port::Int`: Port for server (currently unused)
-- `open_browser::Bool`: Whether to open the grid in browser
-- `save_file::Union{String,Nothing}`: Optional filename to save HTML locally
+- `properties::Vector{String}`: List of property columns to display and filter
+- `size::Tuple{Int,Int}`: Size of molecule images (width, height) (default: (300, 300))
+- `port::Int`: Port for local server (default: 8080)
+- `open_browser::Bool`: Whether to automatically open the grid in browser (default: true)
+- `save_file::Union{String,Nothing}`: Optional filename to save HTML locally (default: nothing)
+- `callback::Union{Function,Nothing}`: Optional callback function (default: nothing)
