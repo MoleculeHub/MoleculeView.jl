@@ -61,10 +61,26 @@ function generate_html_template()
 
     # Read assets
     styles_path = joinpath(@__DIR__, "assets", "styles.css")
-    javascript_path = joinpath(@__DIR__, "assets", "grid.js")
+
+    # Read all JavaScript modules
+    grid_utils_path = joinpath(@__DIR__, "assets", "grid-utils.js")
+    grid_core_path = joinpath(@__DIR__, "assets", "grid-core.js")
+    grid_filtering_path = joinpath(@__DIR__, "assets", "grid-filtering.js")
+    grid_plotting_path = joinpath(@__DIR__, "assets", "grid-plotting.js")
+    grid_ui_path = joinpath(@__DIR__, "assets", "grid-ui.js")
+    grid_main_path = joinpath(@__DIR__, "assets", "grid.js")
 
     styles_content = read(styles_path, String)
-    javascript_content = read(javascript_path, String)
+
+    # Combine all JavaScript modules in dependency order
+    javascript_content = join([
+        read(grid_utils_path, String),
+        read(grid_core_path, String),
+        read(grid_filtering_path, String),
+        read(grid_plotting_path, String),
+        read(grid_ui_path, String),
+        read(grid_main_path, String)
+    ], "\n\n")
 
     # Replace partials
     template = replace(template, "{{HEAD}}" => head_content)
