@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+    <!-- Include head section with meta tags and CSS -->
+    {{HEAD}}
+<body>
+    <!-- Include main grid body structure -->
+    {{GRID_BODY}}
+
+    <!-- Include filter UI -->
+    <script>
+        // Insert filter UI after grid header
+        document.addEventListener('DOMContentLoaded', function() {
+            const gridHeader = document.querySelector('.grid-header');
+            const filterHTML = `{{FILTER_UI}}`;
+            gridHeader.insertAdjacentHTML('beforeend', filterHTML);
+        });
+    </script>
+
+    <!-- Include JavaScript functionality -->
+    <script>
+        {{JAVASCRIPT}}
+    </script>
+</body>
+</html>

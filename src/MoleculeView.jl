@@ -8,7 +8,7 @@ include("grid/types.jl")
 include("grid/rendering.jl")
 include("grid/templates.jl")
 include("grid/display.jl")
-include("interactive_scatter.jl")
+include("scatter/interactive_scatter.jl")
 
 export MolGrid,
     create_molecule_grid,

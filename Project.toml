@@ -15,7 +15,6 @@ ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
 WGLMakie = "276b4fcb-3e11-5398-bf8b-a0c2d153d008"
 
 [compat]
-CSV = "0.10.15"
 Colors = "0.13.1"
 DataFrames = "1.8.0"
 FileIO = "1.17.0"
