@@ -194,6 +194,37 @@ function generate_html_template()
             border: 1px solid #ccc;
         }
 
+        .filter-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #007bff;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        .filter-tag .remove-filter {
+            background: rgba(255,255,255,0.3);
+            border: none;
+            color: white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .filter-tag .remove-filter:hover {
+            background: rgba(255,255,255,0.5);
+        }
+
         .grid-info {
             padding: 15px 20px;
             background: #e9ecef;
@@ -365,42 +396,54 @@ function generate_html_template()
                 <button class="control-btn secondary" id="exportBtn">Export Selected</button>
             </div>
             <div class="range-selection" id="filterSelection" style="display: none;">
-                <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
-                    <!-- Range Filter Section -->
-                    <div style="display: flex; flex-direction: column; gap: 10px; min-width: 300px;">
-                        <label class="range-label">Range Filter (Numerical):</label>
-                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                            <select class="range-property-select" id="rangePropertySelect">
-                                <option value="">Choose property...</option>
-                            </select>
-                            <input type="number" class="range-input" id="rangeMin" placeholder="Min" step="any">
-                            <span class="range-label">to</span>
-                            <input type="number" class="range-input" id="rangeMax" placeholder="Max" step="any">
-                        </div>
+                <!-- Active Filters Display -->
+                <div id="activeFiltersDisplay" style="margin-bottom: 15px;">
+                    <label class="range-label">Active Filters:</label>
+                    <div id="activeFiltersList" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; min-height: 30px; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; padding: 8px; background: rgba(255,255,255,0.05);">
+                        <span id="noFiltersText" style="color: rgba(255,255,255,0.6); font-style: italic;">No active filters</span>
                     </div>
+                </div>
 
-                    <!-- Categorical Filter Section -->
-                    <div style="display: flex; flex-direction: column; gap: 10px; min-width: 300px;">
-                        <label class="range-label">Categorical Filter:</label>
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
-                            <select class="range-property-select" id="categoricalPropertySelect">
+                <!-- Add New Filter Section -->
+                <div style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 15px;">
+                    <label class="range-label">Add New Filter:</label>
+                    <div style="display: flex; gap: 20px; margin-top: 10px; align-items: flex-start; flex-wrap: wrap; justify-content: center;">
+
+                        <!-- Range Filter Section -->
+                        <div style="display: flex; flex-direction: column; gap: 8px; min-width: 350px; padding: 15px; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; background: rgba(255,255,255,0.05);">
+                            <label class="range-label" style="font-size: 12px; margin-bottom: 5px;">Numerical Filter:</label>
+                            <select class="range-property-select" id="rangePropertySelect" style="margin-bottom: 10px; width: 100%; min-width: 200px;">
                                 <option value="">Choose property...</option>
                             </select>
-                            <div id="categoricalValuesContainer" style="max-height: 200px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; padding: 8px; background: rgba(255,255,255,0.05);">
-                                <div id="categoricalSearch" style="margin-bottom: 8px;">
-                                    <input type="text" id="categorySearchInput" placeholder="Search categories..." style="width: 100%; padding: 4px 8px; border: none; border-radius: 3px; font-size: 12px;">
+                            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                                <input type="number" class="range-input" id="rangeMin" placeholder="Min" step="any" style="flex: 1; min-width: 120px;">
+                                <span class="range-label" style="font-size: 12px; flex-shrink: 0;">to</span>
+                                <input type="number" class="range-input" id="rangeMax" placeholder="Max" step="any" style="flex: 1; min-width: 120px;">
+                                <button class="control-btn" id="addRangeFilterBtn" style="padding: 6px 12px; font-size: 12px; flex-shrink: 0;">Add</button>
+                            </div>
+                        </div>
+
+                        <!-- Categorical Filter Section -->
+                        <div style="display: flex; flex-direction: column; gap: 8px; min-width: 350px; padding: 15px; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; background: rgba(255,255,255,0.05);">
+                            <label class="range-label" style="font-size: 12px; margin-bottom: 5px;">Categorical Filter:</label>
+                            <select class="range-property-select" id="categoricalPropertySelect" style="margin-bottom: 8px; width: 100%; min-width: 200px;">
+                                <option value="">Choose property...</option>
+                            </select>
+                            <div id="categoricalValuesContainer" style="max-height: 150px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; padding: 8px; background: rgba(255,255,255,0.05); margin-bottom: 8px;">
+                                <div id="categoricalSearch" style="margin-bottom: 6px;">
+                                    <input type="text" id="categorySearchInput" placeholder="Search categories..." style="width: 100%; padding: 4px 8px; border: none; border-radius: 3px; font-size: 11px;">
                                 </div>
-                                <div id="categoricalValues" style="display: flex; flex-direction: column; gap: 3px; max-height: 150px; overflow-y: auto;">
+                                <div id="categoricalValues" style="display: flex; flex-direction: column; gap: 2px; max-height: 100px; overflow-y: auto;">
                                     <!-- Categorical checkboxes will be populated here -->
                                 </div>
                             </div>
+                            <button class="control-btn" id="addCategoricalFilterBtn" style="padding: 6px 12px; font-size: 12px; width: 100%;">Add</button>
                         </div>
                     </div>
                 </div>
 
-                <div style="display: flex; gap: 10px; margin-top: 15px; justify-content: center;">
-                    <button class="control-btn" id="applyFiltersBtn">Apply Filters</button>
-                    <button class="control-btn secondary" id="clearFiltersBtn">Clear All Filters</button>
+                <div style="display: flex; gap: 10px; margin-top: 15px; justify-content: center; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 15px;">
+                    <button class="control-btn secondary" id="clearAllFiltersBtn">Clear All Filters</button>
                 </div>
             </div>
         </div>
@@ -433,11 +476,9 @@ function generate_html_template()
                 this.searchTerm = '';
                 this.sortBy = '';
                 this.sortOrder = 'asc';
-                this.rangeProperty = '';
-                this.rangeMin = null;
-                this.rangeMax = null;
-                this.categoricalProperty = '';
-                this.categoricalSelectedValues = new Set();
+                this.activeFilters = new Map(); // Store multiple filters by property name
+                this.tempRangeProperty = '';
+                this.tempCategoricalProperty = '';
 
                 this.initializeEventListeners();
             }
@@ -483,13 +524,15 @@ function generate_html_template()
 
                 // Filter event listeners
                 const toggleFilterBtn = document.getElementById('toggleFilterBtn');
-                const applyFiltersBtn = document.getElementById('applyFiltersBtn');
-                const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+                const addRangeFilterBtn = document.getElementById('addRangeFilterBtn');
+                const addCategoricalFilterBtn = document.getElementById('addCategoricalFilterBtn');
+                const clearAllFiltersBtn = document.getElementById('clearAllFiltersBtn');
                 const categorySearchInput = document.getElementById('categorySearchInput');
 
                 toggleFilterBtn.addEventListener('click', () => this.toggleFilterSelection());
-                applyFiltersBtn.addEventListener('click', () => this.applyFilters());
-                clearFiltersBtn.addEventListener('click', () => this.clearAllFilters());
+                addRangeFilterBtn.addEventListener('click', () => this.addRangeFilter());
+                addCategoricalFilterBtn.addEventListener('click', () => this.addCategoricalFilter());
+                clearAllFiltersBtn.addEventListener('click', () => this.clearAllFilters());
                 categorySearchInput.addEventListener('input', (e) => this.filterCategoryOptions(e.target.value));
             }
 
@@ -670,11 +713,6 @@ function generate_html_template()
                             const allCheckboxes = categoricalValues.querySelectorAll('input[type="checkbox"]:not(#selectAllCategories)');
                             allCheckboxes.forEach(cb => {
                                 cb.checked = e.target.checked;
-                                if (e.target.checked) {
-                                    this.categoricalSelectedValues.add(cb.value);
-                                } else {
-                                    this.categoricalSelectedValues.delete(cb.value);
-                                }
                             });
                         });
                     }
@@ -688,7 +726,6 @@ function generate_html_template()
                         checkbox.type = 'checkbox';
                         checkbox.id = 'cat_' + value.replace(/[^a-zA-Z0-9]/g, '_');
                         checkbox.value = value;
-                        checkbox.checked = this.categoricalSelectedValues.has(value);
 
                         const label = document.createElement('label');
                         label.htmlFor = checkbox.id;
@@ -699,12 +736,6 @@ function generate_html_template()
                         categoricalValues.appendChild(checkboxContainer);
 
                         checkbox.addEventListener('change', (e) => {
-                            if (e.target.checked) {
-                                this.categoricalSelectedValues.add(value);
-                            } else {
-                                this.categoricalSelectedValues.delete(value);
-                            }
-
                             // Update select all checkbox
                             const selectAllCheckbox = document.getElementById('selectAllCategories');
                             if (selectAllCheckbox) {
@@ -743,29 +774,28 @@ function generate_html_template()
                     });
                 }
 
-                // Then filter by range if range filter is active
-                if (this.rangeProperty && (this.rangeMin !== null || this.rangeMax !== null)) {
-                    filtered = filtered.filter(mol => {
-                        const value = mol.properties && mol.properties[this.rangeProperty];
-                        if (typeof value !== 'number') return false;
+                // Apply all active filters
+                this.activeFilters.forEach((filter, property) => {
+                    if (filter.type === 'range') {
+                        filtered = filtered.filter(mol => {
+                            const value = mol.properties && mol.properties[property];
+                            if (typeof value !== 'number') return false;
 
-                        let inRange = true;
-                        if (this.rangeMin !== null && value < this.rangeMin) inRange = false;
-                        if (this.rangeMax !== null && value > this.rangeMax) inRange = false;
+                            let inRange = true;
+                            if (filter.min !== null && value < filter.min) inRange = false;
+                            if (filter.max !== null && value > filter.max) inRange = false;
 
-                        return inRange;
-                    });
-                }
+                            return inRange;
+                        });
+                    } else if (filter.type === 'categorical') {
+                        filtered = filtered.filter(mol => {
+                            const value = mol.properties && mol.properties[property];
+                            if (value === undefined || value === null || value === '') return false;
 
-                // Then filter by categorical if categorical filter is active
-                if (this.categoricalProperty && this.categoricalSelectedValues.size > 0) {
-                    filtered = filtered.filter(mol => {
-                        const value = mol.properties && mol.properties[this.categoricalProperty];
-                        if (value === undefined || value === null || value === '') return false;
-
-                        return this.categoricalSelectedValues.has(String(value));
-                    });
-                }
+                            return filter.values.has(String(value));
+                        });
+                    }
+                });
 
                 // Then sort
                 if (this.sortBy) {
@@ -985,52 +1015,143 @@ function generate_html_template()
                 }
             }
 
-            applyFilters() {
-                const rangePropertySelect = document.getElementById('rangePropertySelect');
-                const categoricalPropertySelect = document.getElementById('categoricalPropertySelect');
+            addRangeFilter() {
+                const propertySelect = document.getElementById('rangePropertySelect');
                 const minInput = document.getElementById('rangeMin');
                 const maxInput = document.getElementById('rangeMax');
 
-                // Apply range filter
-                this.rangeProperty = rangePropertySelect.value;
-                this.rangeMin = minInput.value ? parseFloat(minInput.value) : null;
-                this.rangeMax = maxInput.value ? parseFloat(maxInput.value) : null;
+                const property = propertySelect.value;
+                const min = minInput.value ? parseFloat(minInput.value) : null;
+                const max = maxInput.value ? parseFloat(maxInput.value) : null;
 
-                // Apply categorical filter
-                this.categoricalProperty = categoricalPropertySelect.value;
-
-                // Validate inputs
-                if (this.rangeProperty && this.rangeMin === null && this.rangeMax === null) {
-                    alert('Please enter min and/or max values for range filtering');
+                if (!property) {
+                    alert('Please select a property for range filtering');
                     return;
                 }
 
-                if (this.categoricalProperty && this.categoricalSelectedValues.size === 0) {
-                    alert('Please select at least one category value');
+                if (min === null && max === null) {
+                    alert('Please enter min and/or max values');
                     return;
                 }
 
+                if (this.activeFilters.has(property)) {
+                    alert('Filter for this property already exists. Remove it first to add a new one.');
+                    return;
+                }
+
+                // Add the filter
+                this.activeFilters.set(property, {
+                    type: 'range',
+                    min: min,
+                    max: max
+                });
+
+                // Clear the inputs
+                propertySelect.value = '';
+                minInput.value = '';
+                maxInput.value = '';
+
+                this.updateActiveFiltersDisplay();
                 this.filterAndSortMolecules();
                 this.currentPage = 1;
                 this.renderGrid();
             }
 
+            addCategoricalFilter() {
+                const propertySelect = document.getElementById('categoricalPropertySelect');
+                const categoricalValues = document.getElementById('categoricalValues');
+
+                const property = propertySelect.value;
+                if (!property) {
+                    alert('Please select a property for categorical filtering');
+                    return;
+                }
+
+                // Get selected values
+                const selectedValues = new Set();
+                const checkboxes = categoricalValues.querySelectorAll('input[type="checkbox"]:not(#selectAllCategories):checked');
+                checkboxes.forEach(cb => selectedValues.add(cb.value));
+
+                if (selectedValues.size === 0) {
+                    alert('Please select at least one category value');
+                    return;
+                }
+
+                if (this.activeFilters.has(property)) {
+                    alert('Filter for this property already exists. Remove it first to add a new one.');
+                    return;
+                }
+
+                // Add the filter
+                this.activeFilters.set(property, {
+                    type: 'categorical',
+                    values: selectedValues
+                });
+
+                // Clear the inputs
+                propertySelect.value = '';
+                categoricalValues.innerHTML = '';
+                document.getElementById('categorySearchInput').value = '';
+
+                this.updateActiveFiltersDisplay();
+                this.filterAndSortMolecules();
+                this.currentPage = 1;
+                this.renderGrid();
+            }
+
+            removeFilter(property) {
+                this.activeFilters.delete(property);
+                this.updateActiveFiltersDisplay();
+                this.filterAndSortMolecules();
+                this.currentPage = 1;
+                this.renderGrid();
+            }
+
+            updateActiveFiltersDisplay() {
+                const activeFiltersList = document.getElementById('activeFiltersList');
+                const noFiltersText = document.getElementById('noFiltersText');
+
+                if (this.activeFilters.size === 0) {
+                    activeFiltersList.innerHTML = '<span id="noFiltersText" style="color: rgba(255,255,255,0.6); font-style: italic;">No active filters</span>';
+                    return;
+                }
+
+                let filtersHtml = '';
+                this.activeFilters.forEach((filter, property) => {
+                    let filterText = '';
+                    if (filter.type === 'range') {
+                        const minText = filter.min !== null ? filter.min : '';
+                        const maxText = filter.max !== null ? filter.max : '';
+                        filterText = `\${property}: \${minText}-\${maxText}`;
+                    } else if (filter.type === 'categorical') {
+                        const valuesList = Array.from(filter.values).slice(0, 3).join(', ');
+                        const more = filter.values.size > 3 ? ` (+\${filter.values.size - 3} more)` : '';
+                        filterText = `\${property}: \${valuesList}\${more}`;
+                    }
+
+                    filtersHtml += `
+                        <div class="filter-tag">
+                            <span>\${filterText}</span>
+                            <button class="remove-filter" onclick="window.moleculeGrid.removeFilter('\${property}')" title="Remove filter">×</button>
+                        </div>
+                    `;
+                });
+
+                activeFiltersList.innerHTML = filtersHtml;
+            }
+
             clearAllFilters() {
-                // Clear range filter
-                this.rangeProperty = '';
-                this.rangeMin = null;
-                this.rangeMax = null;
+                this.activeFilters.clear();
+
+                // Clear the inputs
                 document.getElementById('rangePropertySelect').value = '';
                 document.getElementById('rangeMin').value = '';
                 document.getElementById('rangeMax').value = '';
-
-                // Clear categorical filter
-                this.categoricalProperty = '';
-                this.categoricalSelectedValues.clear();
                 document.getElementById('categoricalPropertySelect').value = '';
                 document.getElementById('categoricalValues').innerHTML = '';
                 document.getElementById('categorySearchInput').value = '';
 
+                this.updateActiveFiltersDisplay();
                 this.filterAndSortMolecules();
                 this.currentPage = 1;
                 this.renderGrid();
