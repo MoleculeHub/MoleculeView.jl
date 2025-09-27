@@ -2,7 +2,7 @@ using MoleculeView, DataFrames, CSV
 using MoleculeFlow
 
 df = CSV.read("train_data.csv", DataFrame)
-df = first(df, 1000)
+df = first(df, 100)
 
 result = display_mol_grid(
     df,

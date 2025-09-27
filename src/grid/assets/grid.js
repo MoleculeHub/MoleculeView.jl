@@ -1,6 +1,7 @@
 // Grid state management
 class MoleculeGrid {
     constructor() {
+        console.log('MoleculeGrid constructor starting...');
         this.molecules = [];
         this.filteredMolecules = [];
         this.selectedMolecules = new Set();
@@ -13,7 +14,13 @@ class MoleculeGrid {
         this.tempRangeProperty = '';
         this.tempCategoricalProperty = '';
 
-        this.initializeEventListeners();
+        try {
+            this.initializeEventListeners();
+            console.log('MoleculeGrid constructor completed successfully');
+        } catch (error) {
+            console.error('Failed to initialize event listeners:', error);
+            throw error; // Re-throw to prevent incomplete object creation
+        }
     }
 
     initializeEventListeners() {
@@ -26,34 +33,41 @@ class MoleculeGrid {
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
 
-        searchBox.addEventListener('input', (e) => {
+        // Only add event listeners if elements exist
+        if (searchBox) {
+            searchBox.addEventListener('input', (e) => {
             this.searchTerm = e.target.value.toLowerCase();
             this.filterAndSortMolecules();
             this.currentPage = 1;
             this.renderGrid();
-        });
+            });
+        }
 
-        sortSelect.addEventListener('change', (e) => {
-            this.sortBy = e.target.value;
-            this.filterAndSortMolecules();
-            this.currentPage = 1;
-            this.renderGrid();
-        });
-
-        sortOrderBtn.addEventListener('click', () => {
-            this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
-            sortOrderBtn.textContent = this.sortOrder === 'asc' ? 'Ascending' : 'Descending';
-            if (this.sortBy) {
+        if (sortSelect) {
+            sortSelect.addEventListener('change', (e) => {
+                this.sortBy = e.target.value;
                 this.filterAndSortMolecules();
+                this.currentPage = 1;
                 this.renderGrid();
-            }
-        });
+            });
+        }
 
-        selectAllBtn.addEventListener('click', () => this.selectAll());
-        clearSelectionBtn.addEventListener('click', () => this.clearSelection());
-        exportBtn.addEventListener('click', () => this.exportSelected());
-        prevBtn.addEventListener('click', () => this.previousPage());
-        nextBtn.addEventListener('click', () => this.nextPage());
+        if (sortOrderBtn) {
+            sortOrderBtn.addEventListener('click', () => {
+                this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+                sortOrderBtn.textContent = this.sortOrder === 'asc' ? 'Ascending' : 'Descending';
+                if (this.sortBy) {
+                    this.filterAndSortMolecules();
+                    this.renderGrid();
+                }
+            });
+        }
+
+        if (selectAllBtn) selectAllBtn.addEventListener('click', () => this.selectAll());
+        if (clearSelectionBtn) clearSelectionBtn.addEventListener('click', () => this.clearSelection());
+        if (exportBtn) exportBtn.addEventListener('click', () => this.exportSelected());
+        if (prevBtn) prevBtn.addEventListener('click', () => this.previousPage());
+        if (nextBtn) nextBtn.addEventListener('click', () => this.nextPage());
 
         // Filter event listeners
         const toggleFilterBtn = document.getElementById('toggleFilterBtn');
@@ -62,11 +76,11 @@ class MoleculeGrid {
         const clearAllFiltersBtn = document.getElementById('clearAllFiltersBtn');
         const categorySearchInput = document.getElementById('categorySearchInput');
 
-        toggleFilterBtn.addEventListener('click', () => this.toggleFilterSelection());
-        addRangeFilterBtn.addEventListener('click', () => this.addRangeFilter());
-        addCategoricalFilterBtn.addEventListener('click', () => this.addCategoricalFilter());
-        clearAllFiltersBtn.addEventListener('click', () => this.clearAllFilters());
-        categorySearchInput.addEventListener('input', (e) => this.filterCategoryOptions(e.target.value));
+        if (toggleFilterBtn) toggleFilterBtn.addEventListener('click', () => this.toggleFilterSelection());
+        if (addRangeFilterBtn) addRangeFilterBtn.addEventListener('click', () => this.addRangeFilter());
+        if (addCategoricalFilterBtn) addCategoricalFilterBtn.addEventListener('click', () => this.addCategoricalFilter());
+        if (clearAllFiltersBtn) clearAllFiltersBtn.addEventListener('click', () => this.clearAllFilters());
+        if (categorySearchInput) categorySearchInput.addEventListener('input', (e) => this.filterCategoryOptions(e.target.value));
     }
 
     setData(molecules) {
@@ -691,15 +705,23 @@ class MoleculeGrid {
     }
 }
 
-// Initialize grid
-window.moleculeGrid = new MoleculeGrid();
-
 // Function to be called from Julia
 window.setMoleculeData = function(data) {
+    console.log('setMoleculeData called with data:', data.length, 'molecules');
+    console.log('Current moleculeGrid:', window.moleculeGrid);
+    console.log('Creating fresh MoleculeGrid...');
+    try {
+        window.moleculeGrid = new MoleculeGrid();
+        console.log('MoleculeGrid created:', window.moleculeGrid);
+        console.log('setData method exists:', typeof window.moleculeGrid.setData);
+    } catch (error) {
+        console.error('Failed to create MoleculeGrid:', error);
+        return;
+    }
     window.moleculeGrid.setData(data);
 };
 
 // Function to get current selection
 window.getSelection = function() {
-    return Array.from(window.moleculeGrid.selectedMolecules);
+    return window.moleculeGrid ? Array.from(window.moleculeGrid.selectedMolecules) : [];
 };
